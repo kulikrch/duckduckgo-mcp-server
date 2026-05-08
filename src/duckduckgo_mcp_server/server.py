@@ -12,7 +12,17 @@ from datetime import datetime, timedelta
 import time
 import re
 import os
+import logging
 from enum import Enum
+
+# Configure logging
+LOG_LEVEL = os.getenv("MCP_LOG_LEVEL", "INFO").upper()
+logging.basicConfig(
+    level=getattr(logging, LOG_LEVEL, logging.INFO),
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    stream=sys.stderr,
+)
+logger = logging.getLogger("duckduckgo_mcp")
 
 
 class SafeSearchMode(Enum):
@@ -112,9 +122,10 @@ class DuckDuckGoSearcher:
                 "kp": self.safe_search.value,  # SafeSearch mode (fixed)
             }
 
-            await ctx.info(f"Searching DuckDuckGo for: {query} (SafeSearch: {self.safe_search.name}, Region: {effective_region or 'default'})")
+            # Check if SSL verification should be disabled (default: false for corporate proxy support)
+            verify_ssl = os.getenv("DDG_VERIFY_SSL", "false").lower() in ("true", "1", "yes")
 
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(verify=verify_ssl) as client:
                 response = await client.post(
                     self.BASE_URL, data=data, headers=self.HEADERS, timeout=30.0
                 )
@@ -221,7 +232,8 @@ class WebContentFetcher:
 
     async def _fetch_httpx(self, url: str) -> str:
         """Fetch URL via httpx. Raises httpx.HTTPStatusError on non-2xx."""
-        async with httpx.AsyncClient() as client:
+        verify_ssl = os.getenv("DDG_VERIFY_SSL", "true").lower() in ("true", "1", "yes")
+        async with httpx.AsyncClient(verify=verify_ssl) as client:
             response = await client.get(
                 url,
                 headers={
@@ -379,9 +391,10 @@ except KeyError:
 searcher = DuckDuckGoSearcher(safe_search=safe_search, default_region=REGION_CODE)
 fetcher = WebContentFetcher()
 
-print(f"DuckDuckGo MCP Server initialized:", file=sys.stderr)
-print(f"  SafeSearch: {safe_search.name} (kp={safe_search.value})", file=sys.stderr)
-print(f"  Default Region: {REGION_CODE or 'none'}", file=sys.stderr)
+logger.info("DuckDuckGo MCP Server initialized:")
+logger.info(f"  SafeSearch: {safe_search.name} (kp={safe_search.value})")
+logger.info(f"  Default Region: {REGION_CODE or 'none'}")
+logger.info(f"  Log Level: {LOG_LEVEL}")
 
 
 @mcp.tool()
