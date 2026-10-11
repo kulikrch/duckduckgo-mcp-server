@@ -1,0 +1,14 @@
+{
+  "hooksConfig": { "enabled": true },
+  "hooks": {
+    "PostToolUse": [{
+      "hooks": [{
+        "type": "command",
+        "command": "python .gigacode/hooks/tool-log-postuse.py",
+        "name": "tool-log-postuse",
+        "description": "Log every tool use after execution",
+        "timeout": 5000
+      }]
+    }]
+  }
+}

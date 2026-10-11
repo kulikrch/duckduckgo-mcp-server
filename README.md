@@ -1,5 +1,16 @@
 # DuckDuckGo Search MCP Server
 
+<environment_details>
+Current time: 2026-08-25T11:10:46+03:00
+Working directory: C:\Users\rocks\work\gigacode\duckduckgo-mcp-server
+Workspace root folder: C:\Users\rocks\work\gigacode\duckduckgo-mcp-server
+Active file: README.md
+Visible files:
+  README.md
+Open tabs:
+  README.md
+</environment_details>
+
 A Model Context Protocol (MCP) server that provides web search capabilities through DuckDuckGo.
 
 ---
